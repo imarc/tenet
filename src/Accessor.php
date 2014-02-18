@@ -69,7 +69,6 @@ class Accessor {
 		$type = $this->getType($object, $field);
 
 		if (isset($this->filters[$type])) {
-			var_dump($type);
 			$value = $this->filters[$type]->convertToSetterValue($this, $object, $field, $value);
 		}
 
