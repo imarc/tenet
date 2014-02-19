@@ -11,7 +11,7 @@ class AssociationToOneFilter extends AbstractAssociationFilter implements Filter
 		$metadata = $accessor->getObjectManager()->getClassMetadata(get_class($object));
 		$target   = $metadata->getAssociationTargetClass($object);
 
-		return $this->makeObject($accessor->getObjectManager(), $object, $target, $value);
+		return $this->makeObject($accessor, $object, $target, $value);
 	}
 
 	public function convertToGetterValue(Accessor $accessor, $object, $field, $value)

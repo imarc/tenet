@@ -7,8 +7,9 @@ abstract class AbstractAssociationFilter
 	 * @todo refactor this... it can be better for scalar vs array
 	 * @todo rename the object var in the checks
 	 */
-	protected function makeObject($manager, $object, $target, $data)
+	protected function makeObject($accessor, $object, $target, $data)
 	{
+		$manager     = $accessor->getObjectManager();
 		$metadata    = $manager->getClassMetadata($target);
 		$identifiers = $metadata->getIdentifierFieldNames($object);
 
@@ -19,8 +20,7 @@ abstract class AbstractAssociationFilter
 
 		// handle scalar identifier
 		if (is_scalar($data) && count($identifiers) === 1) {
-			$object = $this->manager->find($target, $data) ?: new $target;
-			return $this->fill($object, $values);
+			return $manager->find($target, $data) ?: new $target;
 		}
 
 		// handle keyed identifier(s)
@@ -32,8 +32,8 @@ abstract class AbstractAssociationFilter
 
 			// if all identifiers are present, try to find the object
 			if (count($ids) === count($identifiers)) {
-				$object = $this->manager->find($target, $data) ?: new $target;
-				return $this->fill($object, $values);
+				$object = $manager->find($target, $ids) ?: new $target;
+				return $accessor->fill($object, $data);
 			} 
 		}
 

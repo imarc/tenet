@@ -13,10 +13,12 @@ class AssociationToManyFilter extends AbstractAssociationFilter implements Filte
 		$target     = $metadata->getAssociationTargetClass($object);
 		$collection = $accessor->get($object, $field) ?: new ArrayCollection();
 
+		$values = !is_array($value) ? array($value) : $value;
+
 		// clear the collection
 		$collection->clear();
-		foreach($data as $values) {
-			$targetObject = $this->makeObject($accessor->getObjectManager(), $object, $target, $value);
+		foreach($values as $value) {
+			$targetObject = $this->makeObject($accessor, $object, $target, $value);
 			$collection->add($targetObject);
 		}
 
@@ -25,7 +27,11 @@ class AssociationToManyFilter extends AbstractAssociationFilter implements Filte
 
 	public function convertToGetterValue(Accessor $accessor, $object, $field, $value)
 	{
-		return $value;
+		if ($value instanceof ArrayCollection) {
+			return $value;
+		}
+
+		return new ArrayCollection();
 	}
 }
 

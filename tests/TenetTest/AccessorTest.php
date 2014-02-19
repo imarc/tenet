@@ -20,6 +20,8 @@ class AccessorTest extends \PHPUnit_Framework_TestCase
 		$entityClass = 'TenetTest\Asset\Entity';
 		$refl = new \ReflectionClass($entityClass);
 
+		$this->manager = $manager;
+
 		$manager->expects($this->any())
 			->method('getClassMetadata')
 			->will($this->returnValue($metadata));
@@ -184,6 +186,7 @@ class AccessorTest extends \PHPUnit_Framework_TestCase
 			->method('getReflectionClass')
 			->will($this->returnValue($refl));
 
+
 		$this->accessor = new Accessor($manager);
 	}
 
@@ -217,8 +220,9 @@ class AccessorTest extends \PHPUnit_Framework_TestCase
 
 		$this->assertInstanceOf('DateTime', $date);
 	}
+	
 
-	public function testToOneAssociationWithObject()
+	public function testToOneAssociationWithNewObject()
 	{
 		$entity = new Asset\Entity;
 
@@ -227,5 +231,60 @@ class AccessorTest extends \PHPUnit_Framework_TestCase
 		));
 
 		$this->assertEquals($entity, $this->accessor->get($entity, 'toOne'));
+	}
+
+
+	public function testToOneAssociationWithExistingObject()
+	{
+        $associatedEntity = new Asset\Entity();
+
+		$this->accessor->set($associatedEntity, 'id', 1);
+
+		$this->manager
+            ->expects($this->once())
+            ->method('find')
+			->with('TenetTest\Asset\Entity', array('id' => 1))
+            ->will($this->returnValue($associatedEntity));
+
+		$entity = new Asset\Entity;
+
+		$this->accessor->fill($entity, array(
+			'toOne' => array('id' => 1)
+		));
+
+		$this->assertEquals($associatedEntity, $this->accessor->get($entity, 'toOne'));
+	}
+
+
+	public function testToManyAssociationWithNewObject()
+	{
+		$entity = new Asset\Entity;
+
+		$this->accessor->fill($entity, array(
+			'toMany' => $entity
+		));
+
+		$this->assertEquals($entity, $this->accessor->get($entity, 'toMany')->offsetGet(0));
+	}
+
+	public function testToManyAssociationWithExistingObject()
+	{
+        $associatedEntity = new Asset\Entity();
+
+		$this->accessor->set($associatedEntity, 'id', 1);
+
+		$this->manager
+            ->expects($this->once())
+            ->method('find')
+			->with('TenetTest\Asset\Entity', array('id' => 1))
+            ->will($this->returnValue($associatedEntity));
+
+		$entity = new Asset\Entity;
+
+		$this->accessor->fill($entity, array(
+			'toOne' => array('id' => 1)
+		));
+
+		$this->assertEquals($associatedEntity, $this->accessor->get($entity, 'toOne'));
 	}
 }
