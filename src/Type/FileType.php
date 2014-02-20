@@ -2,7 +2,7 @@
 namespace Tenet\Type;
 
 use SplFileInfo;
-use Doctrine\DBAL\Types\Type;
+use Doctrine\DBAL\Types\StringType;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 
 /**
