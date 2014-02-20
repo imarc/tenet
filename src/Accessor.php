@@ -28,12 +28,15 @@ class Accessor {
 		$this->manager = $manager;
 
 		// default orm/odm configuration
-	
+
 		$datetimeFilter = new Filter\DateTimeFilter();
+		$fileFilter     = new Filter\FileFilter();
+
 		$this->register('datetimetz', $datetimeFilter);
-		$this->register('datetime', $datetimeFilter);
-		$this->register('date', $datetimeFilter);
-		$this->register('time', $datetimeFilter);
+		$this->register('datetime',   $datetimeFilter);
+		$this->register('date',       $datetimeFilter);
+		$this->register('time',       $datetimeFilter);
+		$this->register('file',       $fileFilter);
 
 		$this->register(self::ASSOCIATION_TO_MANY, new  Filter\AssociationToManyFilter());
 		$this->register(self::ASSOCIATION_TO_ONE, new Filter\AssociationToOneFilter());
@@ -135,7 +138,7 @@ class Accessor {
 			return self::ASSOCIATION_TO_ONE;
 		} else if ($metadata->hasAssociation($field) && $metadata->isCollectionValuedAssociation($field)) {
 			return self::ASSOCIATION_TO_MANY;
-		} 
+		}
 
 		return null;
 	}
