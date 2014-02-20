@@ -38,18 +38,27 @@ class Accessor {
 		$this->register('time',       $datetimeFilter);
 		$this->register('file',       $fileFilter);
 
-		$this->register(self::ASSOCIATION_TO_MANY, new  Filter\AssociationToManyFilter());
+		$this->register(self::ASSOCIATION_TO_MANY, new Filter\AssociationToManyFilter());
 		$this->register(self::ASSOCIATION_TO_ONE, new Filter\AssociationToOneFilter());
 
 	}
 
+
 	/**
 	 *
 	 */
-	public function fill($object, $data = array(), $protected = array())
+	public function fill($object, $data = array())
 	{
+		$protected = [];
+
+		if ($object instanceof AccessInterface) {
+			$protected = $object->loadProtectedFields();
+		}
+
 		foreach($data as $name => $value) {
-			$this->set($object, $name, $value);
+			if (!in_array($name, $protected)) {
+				$this->set($object, $name, $value);
+			}
 		}
 
 		return $object;
@@ -63,6 +72,7 @@ class Accessor {
 	{
 		$this->filters[$type] = $filter;
 	}
+
 
 	/**
 	 *

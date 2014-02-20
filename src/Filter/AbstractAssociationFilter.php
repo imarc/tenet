@@ -34,10 +34,10 @@ abstract class AbstractAssociationFilter
 
 			// if all identifiers are present, try to find the object
 			if (count($ids) === count($identifiers)) {
-				$exiting_record = $manager->find($target, $ids);
+				$existing_record = $manager->find($target, $ids);
 
 				if ($existing_record) {
-					$object = $exiting_record;
+					$object = $existing_record;
 				}
 			}
 
