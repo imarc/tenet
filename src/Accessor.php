@@ -17,6 +17,7 @@ class Accessor {
 	const ASSOCIATION_TO_ONE  = 'association_to_one';
 	const ASSOCIATION_TO_MANY = 'association_to_many';
 
+	protected $context;
 	protected $manager;
 	protected $filters = array();
 
@@ -47,12 +48,16 @@ class Accessor {
 	/**
 	 *
 	 */
-	public function fill($object, $data = array())
+	public function fill($object, $data = array(), $context = null)
 	{
+		if ($this->context !== null) {
+			$this->context = $context;
+		}
+
 		$protected = [];
 
 		if ($object instanceof AccessInterface) {
-			$protected = $object->loadProtectedFields();
+			$protected = $object->loadProtectedFields($this->context);
 		}
 
 		foreach($data as $name => $value) {
@@ -60,6 +65,8 @@ class Accessor {
 				$this->set($object, $name, $value);
 			}
 		}
+
+		$this->context = null;
 
 		return $object;
 	}
