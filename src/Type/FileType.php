@@ -8,7 +8,7 @@ use Doctrine\DBAL\Platforms\AbstractPlatform;
 /**
  * A file data type for doctrine DBs
  */
-class FileType extends Type
+class FileType extends StringType
 {
     const FILE = 'file';
 
@@ -34,13 +34,5 @@ class FileType extends Type
     public function getName()
     {
         return self::FILE;
-    }
-
-    /**
-     *
-     */
-    public function getSqlDeclaration(array $fieldDeclaration, AbstractPlatform $platform)
-    {
-        return 'VARCHAR';
     }
 }
