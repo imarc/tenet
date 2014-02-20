@@ -23,6 +23,8 @@ abstract class AbstractAssociationFilter
 			return $manager->find($target, $data) ?: new $target;
 		}
 
+		$object = new $target;
+
 		// handle keyed identifier(s)
 		if (is_array($data)) {
 			// get array of identifier data passed in
@@ -32,11 +34,16 @@ abstract class AbstractAssociationFilter
 
 			// if all identifiers are present, try to find the object
 			if (count($ids) === count($identifiers)) {
-				$object = $manager->find($target, $ids) ?: new $target;
-				return $accessor->fill($object, $data);
-			} 
+				$exiting_record = $manager->find($target, $ids);
+
+				if ($existing_record) {
+					$object = $exiting_record;
+				}
+			}
+
+			$accessor->fill($object, $data);
 		}
 
-		return new $target;
+		return $object;
 	}
 }
