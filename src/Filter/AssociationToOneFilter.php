@@ -9,7 +9,7 @@ class AssociationToOneFilter extends AbstractAssociationFilter implements Filter
 	public function convertToSetterValue(Accessor $accessor, $object, $field, $value)
 	{
 		$metadata = $accessor->getObjectManager()->getClassMetadata(get_class($object));
-		$target   = $metadata->getAssociationTargetClass($object);
+		$target   = $metadata->getAssociationTargetClass($field);
 
 		return $this->makeObject($accessor, $object, $target, $value);
 	}
