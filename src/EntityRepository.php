@@ -2,6 +2,10 @@
 namespace Tenet;
 
 use Doctrine;
+use InvalidArgumentException;
+use Doctrine\ORM\Tools\Pagination\Paginator;
+use Doctrine\ORM\Query\Expr\Expr;
+use Doctrine\ORM\QueryBuilder;
 
 /**
  *
@@ -20,7 +24,15 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 
 		if ($limit) {
 			if ($limit < 0) {
-				throw new InvalidArgumentException();
+				throw new InvalidArgumentException(
+					'Limit cannot be less than 0'
+				);
+			}
+
+			if ($page < 0) {
+				throw new InvalidArgumentException(
+					'Page cannot be less than 1'
+				);
 			}
 
 			$builder->setMaxResults($limit);
@@ -31,12 +43,28 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 			$builder->where($this->expandBuildTerms($builder, $terms));
 		}
 
-		return $builder->getQuery()->getResult();
+		if ($order) {
+			foreach ($order as $field => $direction) {
+				if (is_numeric($field)) {
+					$field     = $order[$field];
+					$direction = 'asc';
+				}
+
+				$builder->addOrderBy($field, $direction);
+			}
+		}
+
+		return new Paginator($builder->getQuery());
 	}
 
 
 	/**
+	 * Expands build terms in `and` / `or` expressions
 	 *
+	 * @param QueryBuilder $builder A builder to build the and/or expressions
+	 * @param array $terms The terms from which to expand comparisons
+	 * @param integer &$pcount The current parameter count (when called recursively)
+	 * @return Expr An `and` expression containing the terms and conditions passed by $terms
 	 */
 	protected function expandBuildTerms($builder, $terms, &$pcount = 0)
 	{
@@ -49,17 +77,13 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 					$field    = $matches[1][0];
 					$operator = $matches[2][0];
 
-				} elseif (is_array($value)) {
-					$field    = $condition;
-					$operator = 'in';
-
 				} else {
 					$field    = $condition;
 					$operator = '=';
 				}
 
 			} elseif (!is_array($value)) {
-				$field    = $value;
+				$field    = $terms['condition'];
 				$operator = '!';
 
 			} else {
@@ -67,7 +91,32 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 				continue;
 			}
 
-			$and->add($this->makeComparison($builder, $field, $operator, $value, ++$pcount));
+			//
+			// Normalize field and handle joins
+			//
+
+			if (strpos($field, '.') === FALSE) {
+				$field = self::ALIAS_NAME . '.' . $field;
+			} else {
+				$field_parts = explode('.', $field, 2);
+				$rel_alias   = $field_parts[0];
+
+				foreach ($builder->getDQLPart('select') as $select_part) {
+					$aliases =  $select_part->getParts();
+
+					if (!in_array($rel_alias, $aliases)) {
+						$aliases[] = $rel_alias;
+
+						$builder->leftJoin(self::ALIAS_NAME . '.' . $rel_alias, $rel_alias, 'ON');
+						$builder->select($aliases);
+					}
+				}
+			}
+
+			$comparison = $this->makeComparison($builder, $field, $operator, $value, ++$pcount);
+
+			$builder->setParameter($pcount, $value);
+			$and->add($comparison);
 		}
 
 		return $expr = $and->add($ors);
@@ -75,7 +124,14 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 
 
 	/**
+	 * Makes a comparison based on shortened operators
 	 *
+	 * @param QueryBuilder $builder A builder to build comparisons
+	 * @param string $field The field to make a comparison for
+	 * @param string $operator The comparison operation to use
+	 * @param mixed $value The value for comparison
+	 * @param integer $pcount The current parameter count
+	 * @return Expr A mixed comparison expression of the equivalent $operator type
 	 */
 	private function makeComparison($builder, $field, $operator, $value, $pcount)
 	{
@@ -83,19 +139,20 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 			'='   => 'eq',
 			'<'   => 'lt',
 			'>'   => 'gt',
-			'~'   => 'like',
 			'!'   => 'neq',
+			'~'   => 'like',
+			'in'  => 'in',
+			'!in' => 'notIn',
+			'=='  => 'eq',
 			'!='  => 'neq',
 			'<>'  => 'neq',
 			'<='  => 'lte',
-			'>='  => 'gte',
-			'in'  => 'in',
-			'!in' => 'notIn'
+			'>='  => 'gte'
 		];
 
 		if (!isset($method_translations[$operator])) {
-			throw new Flourish\ProgrammerException(
-				'Invalid operator %s specified', $operator
+			throw new InvalidArgumentException(
+				'Build terms contains invalid operator ' . $operator
 			);
 		}
 
@@ -113,12 +170,6 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 			}
 		}
 
-		if (strpos($field, '.') === FALSE) {
-			$field = self::ALIAS_NAME . '.' . $field;
-		}
-
-		return $builder
-			->setParameter($pcount, $value)
-			->expr()->$method($field, '?' . $pcount);
+		return $builder->expr()->$method($field, '?' . $pcount);
 	}
 }
