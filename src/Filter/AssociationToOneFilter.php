@@ -19,4 +19,3 @@ class AssociationToOneFilter extends AbstractAssociationFilter implements Filter
 		return $value;
 	}
 }
-
