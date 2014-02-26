@@ -17,7 +17,9 @@ class FileType extends StringType
      */
     public function convertToPHPValue($value, AbstractPlatform $platform)
     {
-        return new SplFileInfo($value);
+        return $value
+            ? new SplFileInfo($value)
+            : NULL;
     }
 
     /**
@@ -25,7 +27,9 @@ class FileType extends StringType
      */
     public function convertToDatabaseValue($value, AbstractPlatform $platform)
     {
-        return $value->getPath();
+        return $value
+            ? $value->getPath()
+            : NULL;
     }
 
     /**
