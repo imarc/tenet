@@ -12,14 +12,20 @@ class FileType extends StringType
 {
     const FILE = 'file';
 
+    private $baseDirectory;
+
     /**
      *
      */
     public function convertToPHPValue($value, AbstractPlatform $platform)
     {
-        return $value
-            ? new SplFileInfo($value)
-            : NULL;
+        if (!$value) {
+            return NULL;
+        }
+
+        return !preg_match('#^(/|\\\\|[a-z]:(\\\\|/)|\\\\|//)#i', $value)
+            ? new SplFileInfo($this->baseDirectory . $value)
+            : new SplFileInfo($value);
     }
 
     /**
@@ -27,9 +33,15 @@ class FileType extends StringType
      */
     public function convertToDatabaseValue($value, AbstractPlatform $platform)
     {
-        return $value
-            ? $value->getPath()
-            : NULL;
+        if (!$value) {
+            return NULL;
+        }
+
+        if (strpos($value->getRealPath(), $this->baseDirectory) === 0) {
+            return substr($value->getRealPath(), strlen($this->baseDirectory));
+        }
+
+        return $value->getRealPath();
     }
 
     /**
@@ -38,5 +50,14 @@ class FileType extends StringType
     public function getName()
     {
         return self::FILE;
+    }
+
+
+    /**
+     *
+     */
+    public function setBaseDirectory($directory)
+    {
+        $this->baseDirectory = rtrim($directory, '/\\' . DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
     }
 }
