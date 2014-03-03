@@ -217,7 +217,6 @@ class AccessorTest extends \PHPUnit_Framework_TestCase
 
 		$date = $this->accessor->get($entity, 'datetime');
 
-
 		$this->assertInstanceOf('DateTime', $date);
 	}
 	

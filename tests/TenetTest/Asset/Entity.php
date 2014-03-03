@@ -2,8 +2,12 @@
 namespace TenetTest\Asset;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use Tenet\AccessInterface;
+use Tenet\Access\AccessibleTrait;
 
-class Entity {
+class Entity implements AccessInterface {
+	use AccessibleTrait;
+
 	protected $id;
 	protected $string;
 	protected $datetime;
