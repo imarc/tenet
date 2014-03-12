@@ -7,11 +7,20 @@ abstract class AbstractAssociationFilter
 	 * @todo refactor this... it can be better for scalar vs array
 	 * @todo rename the object var in the checks
 	 */
-	protected function makeObject($accessor, $object, $target, $data)
+	protected function makeObject($accessor, $object, $field, $data)
 	{
+		/*
 		$manager     = $accessor->getObjectManager();
 		$metadata    = $manager->getClassMetadata($target);
-		$identifiers = $metadata->getIdentifierFieldNames($object);
+		$identifiers = $metadata->getIdentifierFieldNames();
+		$target      = $metadata->getAssociationTargetClass($field);
+		 */
+
+		$manager        = $accessor->getObjectManager();
+		$objectMetadata = $manager->getClassMetadata(get_class($object));
+		$target         = $objectMetadata->getAssociationTargetClass($field);
+		$targetMetadata = $manager->getClassMetadata($target);
+		$identifiers    = $targetMetadata->getIdentifierFieldNames();
 
 		// handle object of type target
 		if ($data instanceof $target) {
@@ -23,7 +32,7 @@ abstract class AbstractAssociationFilter
 			return $manager->find($target, $data) ?: new $target;
 		}
 
-		$object = new $target;
+		$targetObject = new $target;
 
 		// handle keyed identifier(s)
 		if (is_array($data)) {
@@ -37,13 +46,18 @@ abstract class AbstractAssociationFilter
 				$existing_record = $manager->find($target, $ids);
 
 				if ($existing_record) {
-					$object = $existing_record;
+					$targetObject = $existing_record;
 				}
 			}
 
-			$accessor->fill($object, $data);
+			$accessor->fill($targetObject, $data);
 		}
 
-		return $object;
+		if ($objectMetadata->isAssociationInverseSide($field)) {
+			$owning = $objectMetadata->getAssociationMappedByTargetField($field);
+			$accessor->set($targetObject, $owning, $object);
+		}
+
+		return $targetObject;
 	}
 }
