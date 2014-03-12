@@ -33,8 +33,8 @@ class FileType extends StringType
      */
     public function convertToDatabaseValue($value, AbstractPlatform $platform)
     {
-        if (!$value) {
-            return NULL;
+        if (!$value instanceof SplFileInfo) {
+            return null;
         }
 
         if (strpos($value->getRealPath(), $this->baseDirectory) === 0) {
