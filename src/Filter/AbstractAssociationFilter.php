@@ -15,13 +15,14 @@ abstract class AbstractAssociationFilter
 		$targetMetadata = $manager->getClassMetadata($target);
 		$identifiers    = $targetMetadata->getIdentifierFieldNames();
 
-		if ($data instanceof $target) {
+		if ($data === null || $data === '') {
+			$targetObject = null;
+		} else if ($data instanceof $target) {
 			// handle object of type target
 			$targetObject = $data;	
-		} else if (is_scalar($data) && count($identifiers) === 1) {
+		} else if (is_scalar($data) && $data !== '' && count($identifiers) === 1) {
 			// handle scalar identifier
-			$targetObject = $manager->find($target, $data) ?: new $target;
-			$accessor->set($targetObject, $identifiers[0], $data);
+			$targetObject = $manager->find($target, $data) ?: null;
 		} else {
 			// handle compound identifiers
 			$targetObject = new $target();
@@ -43,7 +44,7 @@ abstract class AbstractAssociationFilter
 			}
 		}
 
-		if ($objectMetadata->isAssociationInverseSide($field)) {
+		if ($targetObject && $objectMetadata->isAssociationInverseSide($field)) {
 			$owning = $objectMetadata->getAssociationMappedByTargetField($field);
 			$accessor->set($targetObject, $owning, $object);
 		}
