@@ -15,6 +15,8 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 	const ALIAS_NAME = 'data';
 	const REGEX_CONDITION = '/^([^\:]*)\:([^\:]+)$/';
 
+	static protected $order = [];
+
 	/**
 	 *
 	 */
@@ -54,7 +56,47 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 			}
 		}
 
+		foreach (static::$order as $field => $direction) {
+			$builder->addOrderBy(static::ALIAS_NAME . '.' . $field, $direction);
+		}
+
 		return new Paginator($builder->getQuery());
+	}
+
+
+	/**
+	 * Standard findAll with the option to add an orderBy
+	 *
+	 * @param array $orderBy The order by clause to add
+	 *
+	 * {@inheritDoc}
+	 *
+	 */
+	public function findAll(array $orderBy = array())
+	{
+		return $this->findBy(array(), $orderBy);
+	}
+
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+	{
+		$orderBy = array_merge((array) $orderBy, static::$order);
+
+		return parent::findBy($criteria, $orderBy, $limit, $offset);
+	}
+
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function findOneBy(array $criteria, array $orderBy = null)
+	{
+		$orderBy = array_merge((array) $orderBy, static::$order);
+
+		return parent::findOneBy($criteria, $orderBy);
 	}
 
 
