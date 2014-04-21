@@ -17,6 +17,7 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 
 	static protected $order = [];
 
+
 	/**
 	 *
 	 */
@@ -97,6 +98,22 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 		$orderBy = array_merge((array) $orderBy, static::$order);
 
 		return parent::findOneBy($criteria, $orderBy);
+	}
+
+	
+	/**
+	 * Fetch an associated repository by property name
+	 *
+	 * @param string $entity_property The entity property pointing to the foreign repo
+	 * @return EntityRepository The related repository
+	 */
+	public function fetchAssociatedRepository($entity_property)
+	{
+		$entity_class       = $this->getClassName();
+		$class_meta_data    = $this->getEntityManager()->getClassMetaData($entity_class);
+		$associated_mapping = $class_meta_data->getAssociationMapping($entity_property);
+
+		return $this->getEntityManager()->getRepository($associated_mapping['targetEntity']);
 	}
 
 
