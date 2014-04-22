@@ -16,10 +16,16 @@ class FileFilter implements FilterInterface
 	{
 		if ($value instanceof SplFileInfo) {
 			return $value;
-		} else if ('' === $value) {
-			return NULL;
-		} else if (is_string($value)) {
-			$value = new SplFileInfo($value);
+		}
+
+		if ($value === NULL) {
+			$value = $accessor->get($object, $field);
+		} elseif (is_string($value)) {
+			if (!$value) {
+				$value = NULL;	
+			} else {
+				$value = new SplFileInfo($value);
+			}
 		} else if (is_object($value) && !($value instanceof SplFileInfo)) {
 			$value = new SplFileInfo((string) $value);
 		}
