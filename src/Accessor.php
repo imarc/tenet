@@ -126,8 +126,9 @@ class Accessor {
 	 * @return object
 	 *     The object passed as the first argumnent
 	 */
-	public function fill(AccessInterface $object, $data = array())
+	public function fill(AccessInterface $object, $data = array(), $files = array())
 	{
+		$data    = array_replace_recursive($files, $data);
 		$allowed = $object->loadFillableFields($this);
 
 		foreach($data as $name => $value) {
