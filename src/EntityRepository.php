@@ -172,9 +172,13 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 				}
 			}
 
-			$comparison = $this->makeComparison($builder, $field, $operator, $value, ++$pcount);
+			if (!is_null($value)) {
+				$comparison = $this->makeComparison($builder, $field, $operator, $value, ++$pcount);
+				$builder->setParameter($pcount, $value);
+			} else {
+				$comparison = $this->makeComparison($builder, $field, $operator, $value);
+			}
 
-			$builder->setParameter($pcount, $value);
 			$and->add($comparison);
 		}
 
@@ -192,7 +196,7 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 	 * @param integer $pcount The current parameter count
 	 * @return Expr A mixed comparison expression of the equivalent $operator type
 	 */
-	private function makeComparison($builder, $field, $operator, $value, $pcount)
+	private function makeComparison($builder, $field, $operator, $value, $pcount = NULL)
 	{
 		$method_translations = [
 			'='   => 'eq',
@@ -217,7 +221,18 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 
 		$method = $method_translations[$operator];
 
-		if (is_array($value)) {
+		if (is_null($value)) {
+			switch ($method) {
+				case 'eq':
+					$method = 'isNull';
+					break;
+
+				case 'neq':
+					$method = 'isNotNull';
+					break;
+			}
+
+		} elseif (is_array($value)) {
 			switch ($method) {
 				case 'eq':
 					$method = 'in';
@@ -227,8 +242,11 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 					$method = 'notIn';
 					break;
 			}
+
 		}
 
-		return $builder->expr()->$method($field, '?' . $pcount);
+		return ($pcount !== NULL)
+			? $builder->expr()->$method($field, '?' . $pcount)
+			: $builder->expr()->$method($field);
 	}
 }
