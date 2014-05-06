@@ -10,14 +10,15 @@ class AssociationToManyFilter extends AbstractAssociationFilter implements Filte
 {
 	public function convertToSetterValue(Accessor $accessor, $object, $field, $value)
 	{
-		$collection = $accessor->get($object, $field) ?: new ArrayCollection();
-		$values = !is_array($value) ? array($value) : $value;
+		$collection = new ArrayCollection();
 
-		// clear the collection
-		$collection->clear();
-		foreach($values as $value) {
-			$targetObject = $this->makeObject($accessor, $object, $field, $value);
-			$collection->add($targetObject);
+		if ($value !== NULL && $value !== '') {
+			$values = !is_array($value) ? array($value) : $value;
+
+			foreach($values as $value) {
+				$targetObject = $this->makeObject($accessor, $object, $field, $value);
+				$collection->add($targetObject);
+			}
 		}
 
 		return $collection;
