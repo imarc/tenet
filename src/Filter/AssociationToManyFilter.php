@@ -2,6 +2,7 @@
 namespace Tenet\Filter;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Util\Debug;
 use Tenet\FilterInterface;
 use Tenet\Accessor;
@@ -10,23 +11,44 @@ class AssociationToManyFilter extends AbstractAssociationFilter implements Filte
 {
 	public function convertToSetterValue(Accessor $accessor, $object, $field, $value)
 	{
-		$collection = new ArrayCollection();
+		$manager            = $accessor->getObjectManager();
+		$objectMetadata     = $manager->getClassMetadata(get_class($object));
+		$collection         = $accessor->get($object, $field);
+		$incomingCollection = new ArrayCollection();
+		
+		// very helpful: 
+		// http://doctrine-orm.readthedocs.org/en/latest/reference/unitofwork-associations.html
 
-		if ($value !== NULL && $value !== '') {
-			$values = !is_array($value) ? array($value) : $value;
+		if ($value === NULL || $value === '') {
+			$collection->clear();
+			return $collection;
+		}
 
-			foreach($values as $value) {
-				$targetObject = $this->makeObject($accessor, $object, $field, $value);
-				$collection->add($targetObject);
+		$values = !is_array($value) ? array($value) : $value;
+
+		foreach($values as $key => $value) {
+			$incomingCollection->add($this->makeObject($accessor, $object, $field, $value));
+		}
+
+		$isInverse   = $objectMetadata->isAssociationInverseSide($field);
+		$mappedField = $objectMetadata->getAssociationMappedByTargetField($field);
+
+		foreach($collection as $i => $relatedObject) {
+			if (!$incomingCollection->contains($relatedObject)) {
+				$collection->remove($i);
+
+				if ($isInverse) {
+					$accessor->set($relatedObject, $mappedField, null);
+				}
 			}
 		}
 
-		return $collection;
+		return $incomingCollection;
 	}
 
 	public function convertToGetterValue(Accessor $accessor, $object, $field, $value)
 	{
-		if ($value instanceof ArrayCollection) {
+		if ($value instanceof Collection) {
 			return $value;
 		}
 
