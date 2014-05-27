@@ -66,6 +66,23 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 
 
 	/**
+	 *
+	 */
+	public function count(Array $terms = NULL, $field = '*')
+	{
+		$builder = $this->createQueryBuilder(static::ALIAS_NAME);
+
+		$builder->select('count(data.' . $field . ')');
+
+		if ($terms) {
+			$builder->where($this->expandBuildTerms($builder, $terms));
+		}
+
+		return $builder->getQuery()->getSingleScalarResult();
+	}
+
+
+	/**
 	 * Standard findAll with the option to add an orderBy
 	 *
 	 * @param array $orderBy The order by clause to add
