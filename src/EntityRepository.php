@@ -184,7 +184,6 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 						$aliases[] = $rel_alias;
 
 						$builder->leftJoin(self::ALIAS_NAME . '.' . $rel_alias, $rel_alias, 'ON');
-						$builder->select($aliases);
 					}
 				}
 			}
