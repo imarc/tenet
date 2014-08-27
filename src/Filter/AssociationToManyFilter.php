@@ -19,15 +19,14 @@ class AssociationToManyFilter extends AbstractAssociationFilter implements Filte
 		// very helpful: 
 		// http://doctrine-orm.readthedocs.org/en/latest/reference/unitofwork-associations.html
 
-		if ($value === NULL || $value === '') {
-			$collection->clear();
-			return $collection;
-		}
+		if ($value) {
+			$values = !is_array($value)
+				? array($value)
+				: $value;
 
-		$values = !is_array($value) ? array($value) : $value;
-
-		foreach($values as $key => $value) {
-			$incomingCollection->add($this->makeObject($accessor, $object, $field, $value));
+			foreach($values as $key => $value) {
+				$incomingCollection->add($this->makeObject($accessor, $object, $field, $value));
+			}
 		}
 
 		$isInverse   = $objectMetadata->isAssociationInverseSide($field);
@@ -38,7 +37,7 @@ class AssociationToManyFilter extends AbstractAssociationFilter implements Filte
 				$collection->remove($i);
 
 				if ($isInverse) {
-					$accessor->set($relatedObject, $mappedField, null);
+					$accessor->set($relatedObject, $mappedField, NULL);
 				}
 			}
 		}
