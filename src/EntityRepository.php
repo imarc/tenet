@@ -53,6 +53,10 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 					$direction = 'asc';
 				}
 
+				if (strpos($field, '.') === FALSE) {
+					$field = 'data.' . $field;
+				}
+
 				$builder->addOrderBy($field, $direction);
 			}
 		}
@@ -117,7 +121,7 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 		return parent::findOneBy($criteria, $orderBy);
 	}
 
-	
+
 	/**
 	 * Fetch an associated repository by property name
 	 *
@@ -144,8 +148,8 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 	 */
 	protected function expandBuildTerms($builder, $terms, &$pcount = 0)
 	{
-		$and  = $builder->expr()->andx();
-		$ors  = $builder->expr()->orx();
+		$and     = $builder->expr()->andx();
+		$ors     = $builder->expr()->orx();
 
 		foreach ($terms as $condition => $value) {
 			if (!is_numeric($condition)) {
@@ -174,17 +178,18 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 			if (strpos($field, '.') === FALSE) {
 				$field = self::ALIAS_NAME . '.' . $field;
 			} else {
-				$field_parts = explode('.', $field, 2);
-				$rel_alias   = $field_parts[0];
+				$join_aliases = array();
+				$field_parts  = explode('.', $field, 2);
+				$rel_alias    = $field_parts[0];
 
-				foreach ($builder->getDQLPart('select') as $select_part) {
-					$aliases =  $select_part->getParts();
-
-					if (!in_array($rel_alias, $aliases)) {
-						$aliases[] = $rel_alias;
-
-						$builder->leftJoin(self::ALIAS_NAME . '.' . $rel_alias, $rel_alias, 'ON');
+				foreach ($builder->getDQLPart('join') as $join_part) {
+					foreach ($join_part as $join) {
+						$join_aliases[] = explode('.', $join->getJoin())[1];
 					}
+				}
+
+				if (!in_array($rel_alias, $join_aliases)) {
+					$builder->leftJoin(self::ALIAS_NAME . '.' . $rel_alias, $rel_alias, 'ON');
 				}
 			}
 
