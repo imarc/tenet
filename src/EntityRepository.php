@@ -195,7 +195,16 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 
 			if (!is_null($value)) {
 				$comparison = $this->makeComparison($builder, $field, $operator, $value, ++$pcount);
-				$builder->setParameter($pcount, $value);
+
+				if ($operator == '~') {
+					$value = strtolower($value);
+					$value = str_replace(' ', '%', $value);
+					$value = '%' . $value . '%';
+					
+					$builder->setParameter($pcount, $value);
+				} else {
+					$builder->setParameter($pcount, $value);					
+				}
 			} else {
 				$comparison = $this->makeComparison($builder, $field, $operator, $value);
 			}
@@ -264,6 +273,10 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 					break;
 			}
 
+		}
+
+		if ($method == 'like') {
+			$field = 'LOWER(' . $field . ')';
 		}
 
 		return ($pcount !== NULL)
