@@ -105,6 +105,10 @@ class Accessor {
 			}
 		}
 
+		if ($type == 'integer' && $value == '') {
+			return NULL;
+		}
+
 		return $value;
 	}
 
