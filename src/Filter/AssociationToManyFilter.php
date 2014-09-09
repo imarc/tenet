@@ -22,25 +22,72 @@ class AssociationToManyFilter extends AbstractAssociationFilter implements Filte
 		// very helpful:
 		// http://doctrine-orm.readthedocs.org/en/latest/reference/unitofwork-associations.html
 
+		$isInverse   = $objectMetadata->isAssociationInverseSide($field);
+		$mappedField = $objectMetadata->getAssociationMappedByTargetField($field);
+		$mappedClass = $objectMetadata->getAssociationTargetClass($field);
+
 		if ($value) {
 			$values = !is_array($value)
 				? array($value)
 				: $value;
 
-			foreach($values as $key => $value) {
-				$incomingCollection->add($this->makeObject($accessor, $object, $field, $value));
+			foreach ($values as $key => $value) {
+				$relatedObject = $this->makeObject($accessor, $object, $field, $value);
+
+				if ($mappedField) {
+					$inverse = $accessor->get($relatedObject, $mappedField);
+
+					if ($inverse instanceof Collection) {
+						//
+						// Handle bi-directional
+						//
+						if (!$inverse->contains($object)) {
+							$inverse->add($object);
+						}
+
+						//
+						// Handle self referencing bi-directional
+						//
+						if ($mappedClass == get_class($object)) {
+							$peer = $accessor->get($object, $mappedField);
+
+							if (!$peer->contains($relatedObject)) {
+								$peer->add($relatedObject);
+							}
+						}
+					}
+				}
+
+				$incomingCollection->add($relatedObject);
 			}
 		}
 
-		$isInverse   = $objectMetadata->isAssociationInverseSide($field);
-		$mappedField = $objectMetadata->getAssociationMappedByTargetField($field);
-
-		foreach($collection as $i => $relatedObject) {
+		foreach ($collection as $i => $relatedObject) {
 			if (!$incomingCollection->contains($relatedObject)) {
-				$collection->remove($i);
+				if ($mappedField) {
+					$inverse = $accessor->get($relatedObject, $mappedField);
 
-				if ($isInverse) {
-					$accessor->set($relatedObject, $mappedField, NULL);
+					if ($inverse instanceof Collection) {
+						//
+						// Handle bi-directional
+						//
+						if ($inverse->contains($object)) {
+							$inverse->removeElement($object);
+						}
+
+						//
+						// Handle self referencing bi-directional
+						//
+						if ($mappedClass == get_class($object)) {
+							$peer = $accessor->get($object, $mappedField);
+
+							if ($peer->contains($relatedObject)) {
+								$peer->removeElement($relatedObject);
+							}
+						}
+					} else {
+						$accessor->set($relatedObject, $mappedField, NULL);
+					}
 				}
 			}
 		}
