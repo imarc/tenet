@@ -1,5 +1,5 @@
 {
-	"name": "tenet/tenet",
+	"name": "imarc/tenet",
 	"description": "Doctrine Extensions & Helpers",
 	"keywords": ["doctrine", "orm"],
 	"license": "MIT",
