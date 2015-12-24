@@ -200,10 +200,10 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 					$value = strtolower($value);
 					$value = str_replace(' ', '%', $value);
 					$value = '%' . $value . '%';
-					
+
 					$builder->setParameter($pcount, $value);
 				} else {
-					$builder->setParameter($pcount, $value);					
+					$builder->setParameter($pcount, $value);
 				}
 			} else {
 				$comparison = $this->makeComparison($builder, $field, $operator, $value);
@@ -272,7 +272,6 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 					$method = 'notIn';
 					break;
 			}
-
 		}
 
 		if ($method == 'like') {
