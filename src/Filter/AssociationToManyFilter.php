@@ -22,7 +22,6 @@ class AssociationToManyFilter extends AbstractAssociationFilter implements Filte
 		// very helpful:
 		// http://doctrine-orm.readthedocs.org/en/latest/reference/unitofwork-associations.html
 
-		$isInverse   = $objectMetadata->isAssociationInverseSide($field);
 		$mappedField = $objectMetadata->getAssociationMappedByTargetField($field);
 		$mappedClass = $objectMetadata->getAssociationTargetClass($field);
 
@@ -41,6 +40,7 @@ class AssociationToManyFilter extends AbstractAssociationFilter implements Filte
 						//
 						// Handle bi-directional
 						//
+
 						if (!$inverse->contains($object)) {
 							$inverse->add($object);
 						}
@@ -48,6 +48,7 @@ class AssociationToManyFilter extends AbstractAssociationFilter implements Filte
 						//
 						// Handle self referencing bi-directional
 						//
+
 						if ($mappedClass == get_class($object)) {
 							$peer = $accessor->get($object, $mappedField);
 
@@ -55,6 +56,15 @@ class AssociationToManyFilter extends AbstractAssociationFilter implements Filte
 								$peer->add($relatedObject);
 							}
 						}
+
+					} else {
+
+						//
+						// If the inverse is not a collection, then we assume it's a one to many and we want to make
+						// sure that teh related object's mapped field is set to this object.
+						//
+
+						$accessor->set($relatedObject, $mappedField, $object);
 					}
 				}
 
@@ -71,6 +81,7 @@ class AssociationToManyFilter extends AbstractAssociationFilter implements Filte
 						//
 						// Handle bi-directional
 						//
+
 						if ($inverse->contains($object)) {
 							$inverse->removeElement($object);
 						}
@@ -78,6 +89,7 @@ class AssociationToManyFilter extends AbstractAssociationFilter implements Filte
 						//
 						// Handle self referencing bi-directional
 						//
+
 						if ($mappedClass == get_class($object)) {
 							$peer = $accessor->get($object, $mappedField);
 
@@ -85,7 +97,14 @@ class AssociationToManyFilter extends AbstractAssociationFilter implements Filte
 								$peer->removeElement($relatedObject);
 							}
 						}
+
 					} else {
+
+						//
+						// If the inverse is not a collection, then we assume it's a one to many and we want to make
+						// sure that teh related object's mapped field is set to null.
+						//
+
 						$accessor->set($relatedObject, $mappedField, NULL);
 					}
 				}
@@ -108,4 +127,3 @@ class AssociationToManyFilter extends AbstractAssociationFilter implements Filte
 		return new ArrayCollection();
 	}
 }
-

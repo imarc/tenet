@@ -17,10 +17,10 @@ abstract class AbstractAssociationFilter
 
 		if ($data === null || $data === '') {
 			$targetObject = null;
-		} else if ($data instanceof $target) {
+		} elseif ($data instanceof $target) {
 			// handle object of type target
-			$targetObject = $data;	
-		} else if (is_scalar($data) && $data !== '' && count($identifiers) === 1) {
+			$targetObject = $data;
+		} elseif (is_scalar($data) && $data !== '' && count($identifiers) === 1) {
 			// handle scalar identifier
 			$targetObject = $manager->find($target, $data) ?: null;
 		} else {
@@ -42,11 +42,6 @@ abstract class AbstractAssociationFilter
 
 				$accessor->fill($targetObject, $data);
 			}
-		}
-
-		if ($targetObject && $objectMetadata->isAssociationInverseSide($field)) {
-			$owning = $objectMetadata->getAssociationMappedByTargetField($field);
-			$accessor->set($targetObject, $owning, $object);
 		}
 
 		return $targetObject;
