@@ -24,7 +24,7 @@ trait StorageTrait
 		}
 
 		$content_md5_hash  = md5_file($file->getRealPath());
-		$storage_path      = $storage_directory . $content_md5_hash;
+		$storage_path      = $storage_directory . $content_md5_hash . '.' . $file->getClientOriginalExtension();
 
 		if (!file_exists($storage_path)) {
 			if (!copy($file->getRealPath(), $storage_path)) {
