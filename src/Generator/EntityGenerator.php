@@ -1,6 +1,6 @@
 <?php
 
-namespace Tenet\Storage;
+namespace Tenet\Generator;
 
 use RuntimeException;
 
@@ -73,7 +73,7 @@ class EntityGenerator
 				-> addComment("Instantiate a new " . $base_class->getName())
 			;
 
-			if($this->rootClass) {
+			if($this->entityParent) {
 				$base_space->addUse($this->entityParent);
 				$base_class->setExtends($this->entityParent);
 			}
@@ -328,20 +328,18 @@ class EntityGenerator
 			));
 		}
 
-		if (file_exists($file_path)) {
-			if ($overwrite) {
-				if (!is_writable($file_path)) {
-					throw new RuntimeException(sprintf(
-						'Could not write file "%s", file is not writable',
-						$file_path
-					));
-				}
-
-				return file_put_contents($file_path, '<?php ' . $space);
-
-			} else {
-				return FALSE;
+		if (!file_exists($file_path) || $overwrite) {
+			if (file_exists($file_path) && !is_writable($file_path)) {
+				throw new RuntimeException(sprintf(
+					'Could not write file "%s", file is not writable',
+					$file_path
+				));
 			}
+
+			return file_put_contents($file_path, '<?php ' . $space);
+
+		} else {
+			return FALSE;
 		}
 	}
 }
