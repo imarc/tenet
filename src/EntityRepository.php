@@ -3,6 +3,8 @@ namespace Tenet;
 
 use Doctrine;
 use InvalidArgumentException;
+use Doctrine\ORM\EntityManager;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use Doctrine\ORM\Query\Expr\Expr;
 use Doctrine\ORM\QueryBuilder;
@@ -16,6 +18,23 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 	const REGEX_CONDITION = '/^([^\:]*)\:([^\:]+)$/';
 
 	static protected $order = [];
+
+
+	/**
+	 *
+	 */
+	public function __construct(EntityManager $entity_manager)
+	{
+		$metadata_factory = $entity_manager->getMetaDataFactory();
+
+		foreach ($metadata_factory->getAllMetaData() as $class => $metadata) {
+			if ($metadata->customRepositoryClassName == get_class($this)) {
+				$this->model = $metadata->getName();
+			}
+		}
+
+		parent::__construct($entity_manager, $entity_manager->getclassMetaData($this->model));
+	}
 
 
 	/**
@@ -105,9 +124,10 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 	 */
 	public function findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
 	{
-		$orderBy = array_merge((array) $orderBy, static::$order);
+		$orderBy   = array_merge((array) $orderBy, static::$order);
+		$persister = $this->_em->getUnitOfWork()->getEntityPersister($this->_entityName);
 
-		return parent::findBy($criteria, $orderBy, $limit, $offset);
+		return new ArrayCollection($persister->loadAll($criteria, $orderBy, $limit, $offset));
 	}
 
 
