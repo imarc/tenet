@@ -106,6 +106,15 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 
 
 	/**
+	 *
+	 */
+	public function create()
+	{
+		return new $this->model;
+	}
+
+
+	/**
 	 * Standard findAll with the option to add an orderBy
 	 *
 	 * @param array $orderBy The order by clause to add
@@ -155,6 +164,19 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 		$associated_mapping = $class_meta_data->getAssociationMapping($entity_property);
 
 		return $this->getEntityManager()->getRepository($associated_mapping['targetEntity']);
+	}
+
+
+	/**
+	 *
+	 */
+	public function store($entity, $flush = FALSE)
+	{
+		$this->_em->persist($entity);
+
+		if ($flush) {
+			$this->_em->flush();
+		}
 	}
 
 
