@@ -152,7 +152,7 @@ class EntityGenerator
 					// On set, if value is set to null, check if bi-directional and remove
 					//
 
-					$base_class->addMethod('set' . ucfirst($field))
+					$parameter = $base_class->addMethod('set' . ucfirst($field))
 						-> setVisibility("public")
 						-> addComment("Set the value of $field")
 						-> addComment("")
@@ -164,6 +164,10 @@ class EntityGenerator
 						-> addBody("return \$this;")
 						-> addParameter("value")
 						-> setTypeHint($type);
+
+					if (isset($mapping['joinColumns'][0]['nullable']) && $mapping['joinColumns'][0]['nullable']) {
+						$parameter->setOptional(TRUE);
+					}
 				}
 			}
 
