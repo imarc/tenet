@@ -40,7 +40,7 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 	/**
 	 *
 	 */
-	public function build(Array $terms = NULL, $order = NULL, $limit = NULL, $page = 1)
+	public function build(Array $terms = NULL, $order = array(), $limit = NULL, $page = 1)
 	{
 		$builder = $this->createQueryBuilder(static::ALIAS_NAME);
 
@@ -65,23 +65,31 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 			$builder->where($this->expandBuildTerms($builder, $terms));
 		}
 
-		if ($order) {
-			foreach ($order as $field => $direction) {
-				if (is_numeric($field)) {
-					$field     = $order[$field];
-					$direction = 'asc';
-				}
-
-				if (strpos($field, '.') === FALSE) {
-					$field = 'data.' . $field;
-				}
-
-				$builder->addOrderBy($field, $direction);
+		foreach (array_merge($order, static::$order) as $field => $direction) {
+			if (is_numeric($field)) {
+				$field     = $order[$field];
+				$direction = 'asc';
 			}
-		}
 
-		foreach (static::$order as $field => $direction) {
-			$builder->addOrderBy(static::ALIAS_NAME . '.' . $field, $direction);
+			if (strpos($field, '.') === FALSE) {
+				$field = static::ALIAS_NAME . '.' . $field;
+			} else {
+				$join_aliases = array();
+				$field_parts  = explode('.', $field, 2);
+				$rel_alias    = $field_parts[0];
+
+				foreach ($builder->getDQLPart('join') as $join_part) {
+					foreach ($join_part as $join) {
+						$join_aliases[] = explode('.', $join->getJoin())[1];
+					}
+				}
+
+				if (!in_array($rel_alias, $join_aliases)) {
+					$builder->leftJoin(self::ALIAS_NAME . '.' . $rel_alias, $rel_alias, 'ON');
+				}
+			}
+
+			$builder->addOrderBy($field, $direction);
 		}
 
 		return new Paginator($builder->getQuery());
