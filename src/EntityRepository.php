@@ -42,6 +42,10 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 	 */
 	public function build(Array $terms = NULL, $order = array(), $limit = NULL, $page = 1)
 	{
+		if (!$order) {
+			$order = array();
+		}
+
 		$builder = $this->createQueryBuilder(static::ALIAS_NAME);
 
 		if ($limit) {
