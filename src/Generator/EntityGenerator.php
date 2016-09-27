@@ -50,8 +50,8 @@ class EntityGenerator
 	{
 		$cmf->setEntityManager($em);
 
-		$this->metaData      = $cmf->getAllMetaData();
-		$this->entityManager = $em;
+		$this->metaDataFactory = $cmf;
+		$this->entityManager   = $em;
 	}
 
 
@@ -60,7 +60,7 @@ class EntityGenerator
 	 */
 	public function build()
 	{
-		foreach ($this->metaData as $meta_data) {
+		foreach ($this->metaDataFactory->getAllMetaData() as $meta_data) {
 			$class_name = $meta_data->getName();
 			$space_name = $this->parseNamespace($class_name);
 
@@ -135,6 +135,7 @@ class EntityGenerator
 					-> addBody("return \$this->$field;")
 				;
 
+
 				if ($type == 'ArrayCollection') {
 					$constructor->addBody("\$this->$field = new ArrayCollection();");
 
@@ -164,6 +165,17 @@ class EntityGenerator
 						-> addBody("return \$this;")
 						-> addParameter("value")
 						-> setTypeHint($type);
+
+					if ($mapping['inversedBy']) {
+						$inverse = $this->metaDataFactory
+							-> getMetadataFor($mapping['targetEntity'])
+							-> getAssociationMapping($mapping['inversedBy'])
+						;
+
+						if ($inverse['orphanRemoval']) {
+							$parameter->setOptional(TRUE);
+						}
+					}
 
 					if (isset($mapping['joinColumns'][0]['nullable']) && $mapping['joinColumns'][0]['nullable']) {
 						$parameter->setOptional(TRUE);

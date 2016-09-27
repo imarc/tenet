@@ -22,6 +22,7 @@ class AssociationToManyFilter extends AbstractAssociationFilter implements Filte
 		// very helpful:
 		// http://doctrine-orm.readthedocs.org/en/latest/reference/unitofwork-associations.html
 
+		$mapping     = $objectMetadata->getAssociationMapping($field);
 		$mappedField = $objectMetadata->getAssociationMappedByTargetField($field);
 		$mappedClass = $objectMetadata->getAssociationTargetClass($field);
 
@@ -61,7 +62,7 @@ class AssociationToManyFilter extends AbstractAssociationFilter implements Filte
 
 						//
 						// If the inverse is not a collection, then we assume it's a one to many and we want to make
-						// sure that teh related object's mapped field is set to this object.
+						// sure that the related object's mapped field is set to this object.
 						//
 
 						$accessor->set($relatedObject, $mappedField, $object);
@@ -102,11 +103,15 @@ class AssociationToManyFilter extends AbstractAssociationFilter implements Filte
 
 						//
 						// If the inverse is not a collection, then we assume it's a one to many and we want to make
-						// sure that teh related object's mapped field is set to null.
+						// sure that the related object's mapped field is set to null.
 						//
 
 						$accessor->set($relatedObject, $mappedField, NULL);
 					}
+				}
+
+				if ($mapping['orphanRemoval']) {
+					$manager->getUnitOfWork()->scheduleOrphanRemoval($relatedObject);
 				}
 			}
 		}
