@@ -282,4 +282,30 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 			? $builder->expr()->$method($field, '?' . $pcount)
 			: $builder->expr()->$method($field);
 	}
+
+	/**
+ 	 *
+	 */
+	public function query($builder)
+	{
+		$query = $this->_em
+			-> createQueryBuilder()
+			-> select('data')
+			-> from($this->model, 'data')
+		;
+		if (is_callable($builder)) {
+			$builder($query);
+		} elseif (is_string($builder) || is_array($builder)) {
+			settype($builder, 'array');
+			foreach ($builder as $method) {
+				if (!is_callable($method)) {
+					$method = [$this, 'query' . ucfirst($method)];
+				}
+				$method($query);
+			}
+		} else {
+			throw new InvalidArgumentException('Invalid builder type');
+		}
+		return $query->getQuery();
+	}
 }
