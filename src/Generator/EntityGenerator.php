@@ -223,6 +223,8 @@ class EntityGenerator
 	public function setBaseNamespace($namespace)
 	{
 		$this->baseNamespace = $namespace;
+
+		return $this;
 	}
 
 
@@ -232,6 +234,8 @@ class EntityGenerator
 	public function setEntityParentClass($parent_class)
 	{
 		$this->entityParent = $parent_class;
+
+		return $this;
 	}
 
 
@@ -241,6 +245,8 @@ class EntityGenerator
 	public function setEntityRoot($root_directory)
 	{
 		$this->entityRoot = $root_directory;
+
+		return $this;
 	}
 
 
@@ -250,6 +256,8 @@ class EntityGenerator
 	public function setRepositoryParentClass($parent_class)
 	{
 		$this->repositoryParent = $parent_class;
+
+		return $this;
 	}
 
 
@@ -259,6 +267,8 @@ class EntityGenerator
 	public function setRepositoryRoot($root_directory)
 	{
 		$this->repositoryRoot = $root_directory;
+
+		return $this;
 	}
 
 
