@@ -43,12 +43,15 @@ class Accessor {
 		// default orm/odm configuration
 
 		$datetimeFilter = new Filter\DateTimeFilter();
+		$booleanFilter  = new Filter\BooleanFilter();
 		$fileFilter     = new Filter\FileFilter();
 
 		$this->addTypeFilter('datetimetz', $datetimeFilter);
 		$this->addTypeFilter('datetime',   $datetimeFilter);
 		$this->addTypeFilter('date',       $datetimeFilter);
 		$this->addTypeFilter('time',       $datetimeFilter);
+		$this->addTypeFilter('bool',       $booleanFilter);
+		$this->addTypeFilter('boolean',    $booleanFilter);
 		$this->addTypeFilter('file',       $fileFilter);
 
 		$this->addTypeFilter(self::ASSOCIATION_TO_MANY, new Filter\AssociationToManyFilter());
