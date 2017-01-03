@@ -8,7 +8,7 @@ class BooleanFilter implements FilterInterface
 {
 	public function convertToSetterValue(Accessor $accessor, $object, $field, $value)
 	{
-		if ($value === '' || $value == 'null') {
+		if ($value === '' || $value === 'null') {
 			return NULL;
 		} elseif ($value === 'true') {
 			return TRUE;
