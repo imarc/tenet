@@ -127,6 +127,15 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 
 
 	/**
+	 *
+	 */
+	public function detach($entity)
+	{
+		$this->_em->detach($entity);
+	}
+
+
+	/**
 	 * Standard findAll with the option to add an orderBy
 	 *
 	 * @param array $orderBy The order by clause to add
