@@ -26,7 +26,7 @@ class FileFilter implements FilterInterface
 			} else {
 				$value = new SplFileInfo($value);
 			}
-		} else if (is_object($value) && !($value instanceof SplFileInfo)) {
+		} else if (is_object($value) && is_callable([$value, '__toString'])) {
 			$value = new SplFileInfo((string) $value);
 		}
 
