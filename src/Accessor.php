@@ -2,6 +2,7 @@
 namespace Tenet;
 
 use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\ORM\Mapping\ClassMetadata;
 
 /**
  * Doctrine Object Accessor
@@ -168,10 +169,12 @@ class Accessor {
 		$getter = $object->generateGetterCallable($this, $field);
 
 		if (is_callable($getter)) {
-			return $this->convert($object, $field, $getter(), self::GETTER);
+			$value = $this->convert($object, $field, $getter(), self::GETTER);
+		} else {
+			$value = $this->convert($object, $field, $object->get($field), self::GETTER);
 		}
 
-		return $object->get($this, $field);
+		return $value;
 	}
 
 
@@ -220,7 +223,7 @@ class Accessor {
 	 *
 	 * @return Doctrine\Common\Persistence\ObjectManager
 	 */
-	public function getObjectManager()
+	public function getObjectManager($class)
 	{
 		return $this->manager;
 	}
@@ -241,15 +244,75 @@ class Accessor {
 	 * @return object
 	 *     The object passed as the first argument
 	 */
-	public function set(AccessInterface $object, $field, $value)
+	public function set(AccessInterface $object, $field, $value, $internal = FALSE)
 	{
-		$setter = $object->generateSetterCallable($this, $field);
+		$callback  = $object->generateSetterCallable($this, $field);
+		$new_value = $this->convert($object, $field, $value, self::SETTER);
 
-		if (is_callable($setter)) {
-			return $setter($this->convert($object, $field, $value, self::SETTER));
+		if (is_callable($callback)) {
+			$callback($new_value);
+		} else {
+			$object->set($field, $new_value);
 		}
 
-		return $object->set($this, $field, $value);
+		$class     = get_class($object);
+		$manager   = $this->getObjectManager($class);
+		$metadata  = $manager->getClassMetadata($class);
+		$mappings  = $metadata->getAssociationMappings();
+		$old_value = $this->get($object, $field);
+
+		if (!isset($mappings[$field]) || $internal) {
+			return $object;
+		}
+
+		// var_dump($mappings[$field]); exit();
+
+		switch($mappings[$field]['type']) {
+			case ClassMetadata::ONE_TO_ONE:
+				if ($mappings[$field]['inversedBy']) {
+					$this->set($new_value, $mappings[$field]['inversedBy'], $object, TRUE);
+				} elseif ($mappings[$field]['mappedBy']) {
+					$this->set($new_value, $mappings[$field]['mappedBy'], $object, TRUE);
+				}
+				break;
+
+			case ClassMetadata::ONE_TO_MANY:
+				if ($mappings[$field]['mappedBy']) {
+					foreach ($old_value as $value) {
+						if ($new_value->contains($value)) {
+							continue;
+						}
+
+						$this->set($value, $mappings[$field]['mappedBy'], NULL, TRUE);
+					}
+
+					foreach ($new_value as $value) {
+						if ($old_value->contains($value)) {
+							continue;
+						}
+
+						$this->set($value, $mappings[$field]['mappedBy'], $object, TRUE);
+					}
+				}
+				break;
+
+			case ClassMetadata::MANY_TO_ONE:
+				if ($mappings[$field]['inversedBy']) {
+					$collection = $object->get($mappings[$field]['inversedBy']);
+
+					if (!$collection->contains($object)) {
+						$collection->add($object);
+					}
+				}
+
+				break;
+
+			case ClassMetadata::MANY_TO_MANY:
+
+				break;
+		}
+
+		return $object;
 	}
 
 

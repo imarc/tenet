@@ -9,20 +9,24 @@ abstract class AbstractAssociationFilter
 	 */
 	protected function makeObject($accessor, $object, $field, $data)
 	{
-		$manager        = $accessor->getObjectManager();
-		$objectMetadata = $manager->getClassMetadata(get_class($object));
+		$class          = get_class($object);
+		$manager        = $accessor->getObjectManager($class);
+		$objectMetadata = $manager->getClassMetadata($class);
 		$target         = $objectMetadata->getAssociationTargetClass($field);
 		$targetMetadata = $manager->getClassMetadata($target);
 		$identifiers    = $targetMetadata->getIdentifierFieldNames();
 
 		if ($data === null || $data === '') {
 			$targetObject = null;
+
 		} elseif ($data instanceof $target) {
 			// handle object of type target
 			$targetObject = $data;
+
 		} elseif (is_scalar($data) && $data !== '' && count($identifiers) === 1) {
 			// handle scalar identifier
 			$targetObject = $manager->find($target, $data) ?: null;
+
 		} else {
 			// handle compound identifiers
 			$targetObject = new $target();

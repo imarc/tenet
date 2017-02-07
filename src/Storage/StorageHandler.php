@@ -78,8 +78,9 @@ class StorageHandler
 			return;
 		}
 
+		$class     = get_class($entity);
 		$manager   = $args->getObjectManager();
-		$metadata  = $manager->getClassMetadata(get_class($entity));
+		$metadata  = $manager->getClassMetadata($class);
 
 		foreach ($metadata->getFieldNames() as $field) {
 			$type = $metadata->getTypeOfField($field);

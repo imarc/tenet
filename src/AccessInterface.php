@@ -49,7 +49,7 @@ interface AccessInterface
 	 * @return mixed
 	 *    The value associated with the field
 	 */
-	public function get(Accessor $accessor, $field);
+	public function get($field);
 
 
 	/**
@@ -65,5 +65,5 @@ interface AccessInterface
 	 * @return object
 	 *    The object the field was set on
 	 */
-	public function set(Accessor $accessor, $field, $value);
+	public function set($field, $value);
 }
