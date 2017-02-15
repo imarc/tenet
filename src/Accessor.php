@@ -248,6 +248,7 @@ class Accessor {
 	{
 		$callback  = $object->generateSetterCallable($this, $field);
 		$new_value = $this->convert($object, $field, $value, self::SETTER);
+		$old_value = $this->get($object, $field);
 
 		if (is_callable($callback)) {
 			$callback($new_value);
@@ -259,7 +260,6 @@ class Accessor {
 		$manager   = $this->getObjectManager($class);
 		$metadata  = $manager->getClassMetadata($class);
 		$mappings  = $metadata->getAssociationMappings();
-		$old_value = $this->get($object, $field);
 
 		if (!isset($mappings[$field]) || $internal) {
 			return $object;
