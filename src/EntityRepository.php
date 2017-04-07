@@ -136,6 +136,15 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 
 
 	/**
+	 *
+	 */
+	public function remove($entity)
+	{
+		$this->_em->remove($entity);
+	}
+
+
+	/**
 	 * Standard findAll with the option to add an orderBy
 	 *
 	 * @param array $orderBy The order by clause to add
