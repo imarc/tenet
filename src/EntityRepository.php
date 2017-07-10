@@ -378,6 +378,7 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 		} else {
 			throw new InvalidArgumentException('Invalid builder type');
 		}
+
 		return $query->getQuery();
 	}
 }
