@@ -226,7 +226,8 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 				}
 
 			} elseif (!is_array($value)) {
-				$field    = $terms['condition'];
+				$field    = $terms[$condition];
+				$value    = NULL;
 				$operator = '!';
 
 			} else {
@@ -265,9 +266,20 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 					$value = '%' . $value . '%';
 
 					$builder->setParameter($pcount, $value);
+
+				} elseif ($operator == '<>' || $operator == '!') {
+					$null_safe  = $builder->expr()->orx();
+
+					$null_safe->add($comparison);
+					$null_safe->add($this->makeComparison($builder, $field, '=', NULL));
+					$builder->setParameter($pcount, $value);
+
+					$comparison = $null_safe;
+
 				} else {
 					$builder->setParameter($pcount, $value);
 				}
+
 			} else {
 				$comparison = $this->makeComparison($builder, $field, $operator, $value);
 			}
