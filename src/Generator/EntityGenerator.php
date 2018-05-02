@@ -164,7 +164,12 @@ class EntityGenerator
 						-> addBody("")
 						-> addBody("return \$this;")
 						-> addParameter("value")
+						-> setOptional(TRUE)
 						-> setTypeHint($type);
+
+					if (isset($mapping['joinColumns'][0]['nullable']) && !$mapping['joinColumns'][0]['nullable']) {
+						$parameter->setOptional(FALSE);
+					}
 
 					if ($mapping['inversedBy']) {
 						$inverse = $this->metaDataFactory
@@ -175,10 +180,6 @@ class EntityGenerator
 						if ($inverse['orphanRemoval']) {
 							$parameter->setOptional(TRUE);
 						}
-					}
-
-					if (isset($mapping['joinColumns'][0]['nullable']) && $mapping['joinColumns'][0]['nullable']) {
-						$parameter->setOptional(TRUE);
 					}
 				}
 			}
