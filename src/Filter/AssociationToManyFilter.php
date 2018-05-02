@@ -34,7 +34,7 @@ class AssociationToManyFilter extends AbstractAssociationFilter implements Filte
 			foreach ($values as $key => $value) {
 				$relatedObject = $this->makeObject($accessor, $object, $field, $value);
 
-				if ($mappedField) {
+				if ($mappedField && $relatedObject) {
 					$inverse = $accessor->get($relatedObject, $mappedField);
 
 					if ($inverse instanceof Collection) {
