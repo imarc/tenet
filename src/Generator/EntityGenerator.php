@@ -79,6 +79,7 @@ class EntityGenerator
 			}
 
 			$base_space->addUse('Doctrine\Common\Collections\ArrayCollection');
+			$base_space->addUse('Doctrine\Common\Collections\Collection');
 
 			foreach ($meta_data->getFieldNames() as $field) {
 				$type = $this->translateType($meta_data->getTypeOfField($field));
@@ -117,7 +118,7 @@ class EntityGenerator
 				$field = $mapping['fieldName'];
 				$type  = in_array($mapping['type'], $this->toOneTypes)
 					? $mapping['targetEntity']
-					: 'ArrayCollection';
+					: 'Collection';
 
 				$base_class->addProperty($field)
 					-> setVisibility("protected")
@@ -136,7 +137,7 @@ class EntityGenerator
 				;
 
 
-				if ($type == 'ArrayCollection') {
+				if ($type == 'Collection') {
 					$constructor->addBody("\$this->$field = new ArrayCollection();");
 
 					//
@@ -144,6 +145,21 @@ class EntityGenerator
 					// addRelatedEntities()
 					// removeRelatedEntities()
 					//
+
+					$parameter = $base_class->addMethod('set' . ucfirst($field))
+						-> setVisibility("public")
+						-> addComment("Set the value of $field")
+						-> addComment("")
+						-> addComment("@access public")
+						-> addComment("@param $type \$value The value to set to $field")
+						-> addComment("@return " . $base_class->getName() . " The object instance for method chaining")
+						-> addBody("\$this->$field = \$value;")
+						-> addBody("")
+						-> addBody("return \$this;")
+						-> addParameter("value")
+						-> setOptional(TRUE)
+						-> setTypeHint('Doctrine\Common\Collections\Collection');
+
 
 				} else {
 
