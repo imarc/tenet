@@ -14,7 +14,7 @@ class AssociationToOneFilter extends AbstractAssociationFilter implements Filter
 		$mappedClass     = $objectMetadata->getAssociationTargetClass($field);
 		$relatedObject   = $this->makeObject($accessor, $object, $field, $value);
 
-		if ($relatedObject && $mappedField && ($mappedField != $field || $mappledClass != get_class($object))) {
+		if ($relatedObject && $mappedField && ($mappedField != $field || $mappedClass != get_class($object))) {
 			$accessor->set($relatedObject, $mappedField, $object);
 		}
 

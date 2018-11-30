@@ -31,7 +31,7 @@ class Accessor {
 	/**
 	 * Constructor
 	 *
-	 * @param \Doctrine\Common\Persistence\ObjectManager $manager
+	 * @param ObjectManager $manager
 	 *     An Object Manager
 	 */
 	public function __construct(ObjectManager $manager)
@@ -183,7 +183,7 @@ class Accessor {
 	 */
 	public function getContext()
 	{
-		return $context;
+		return $this->context;
 	}
 
 
@@ -218,7 +218,7 @@ class Accessor {
 	/**
 	 * Get the associated ObjectManager
 	 *
-	 * @return Doctrine\Common\Persistence\ObjectManager
+	 * @return ObjectManager
 	 */
 	public function getObjectManager()
 	{

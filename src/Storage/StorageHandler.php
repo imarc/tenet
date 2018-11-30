@@ -3,6 +3,7 @@ namespace Tenet\Storage;
 
 use Doctrine\Common\Persistence\Event\LifecycleEventArgs;
 use InvalidArgumentException;
+use RuntimeException;
 
 class StorageHandler
 {
