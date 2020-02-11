@@ -56,6 +56,15 @@ class FileType extends StringType
     /**
      *
      */
+    public function requiresSQLCommentHint(AbstractPlatform $platform)
+    {
+        return TRUE;
+    }
+
+
+    /**
+     *
+     */
     public function setBaseDirectory($directory)
     {
         $this->baseDirectory = rtrim($directory, '/\\' . DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
