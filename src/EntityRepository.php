@@ -136,6 +136,22 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 
 
 	/**
+	 * Fetch an associated repository by property name
+	 *
+	 * @param string $entity_property The entity property pointing to the foreign repo
+	 * @return EntityRepository The related repository
+	 */
+	public function fetchAssociatedRepository($entity_property)
+	{
+		$entity_class       = $this->getClassName();
+		$class_meta_data    = $this->getEntityManager()->getClassMetaData($entity_class);
+		$associated_mapping = $class_meta_data->getAssociationMapping($entity_property);
+
+		return $this->getEntityManager()->getRepository($associated_mapping['targetEntity']);
+	}
+
+
+	/**
 	 * Standard findAll with the option to add an orderBy
 	 *
 	 * @param array $orderBy The order by clause to add
@@ -173,18 +189,24 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 
 
 	/**
-	 * Fetch an associated repository by property name
 	 *
-	 * @param string $entity_property The entity property pointing to the foreign repo
-	 * @return EntityRepository The related repository
 	 */
-	public function fetchAssociatedRepository($entity_property)
+	public function flush()
 	{
-		$entity_class       = $this->getClassName();
-		$class_meta_data    = $this->getEntityManager()->getClassMetaData($entity_class);
-		$associated_mapping = $class_meta_data->getAssociationMapping($entity_property);
+		$this->_em->flush();
+	}
 
-		return $this->getEntityManager()->getRepository($associated_mapping['targetEntity']);
+
+	/**
+	 *
+	 */
+	public function remove($entity, $flush = FALSE)
+	{
+		$this->_em->remove($entity);
+
+		if ($flush) {
+			$this->flush();
+		}
 	}
 
 
@@ -196,7 +218,7 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 		$this->_em->persist($entity);
 
 		if ($flush) {
-			$this->_em->flush();
+			$this->flush();
 		}
 	}
 
