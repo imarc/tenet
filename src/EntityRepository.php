@@ -1,4 +1,5 @@
 <?php
+
 namespace Tenet;
 
 use Doctrine;
@@ -40,7 +41,7 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 	/**
 	 *
 	 */
-	public function build(Array $terms = NULL, $order = array(), $limit = NULL, $page = 1)
+	public function build(array $terms = NULL, $order = array(), $limit = NULL, $page = 1)
 	{
 		if (!$order) {
 			$order = array();
@@ -103,7 +104,7 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 	/**
 	 *
 	 */
-	public function count(Array $terms = NULL, $field = '*')
+	public function count(array $terms = NULL, $field = '*')
 	{
 		$builder = $this->createQueryBuilder(static::ALIAS_NAME);
 
@@ -159,8 +160,12 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 	 * {@inheritDoc}
 	 *
 	 */
-	public function findAll(array $orderBy = array())
+	public function findAll(?array $orderBy = [])
 	{
+		if (!is_null($orderBy)) {
+			$orderBy = array_merge((array) $orderBy, static::$order);
+		}
+
 		return $this->findBy(array(), $orderBy);
 	}
 
@@ -168,10 +173,13 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 	/**
 	 * {@inheritDoc}
 	 */
-	public function findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+	public function findBy(array $criteria, ?array $orderBy = [], $limit = null, $offset = null)
 	{
-		$orderBy   = array_merge((array) $orderBy, static::$order);
 		$persister = $this->_em->getUnitOfWork()->getEntityPersister($this->_entityName);
+
+		if (!is_null($orderBy)) {
+			$orderBy = array_merge((array) $orderBy, static::$order);
+		}
 
 		return new ArrayCollection($persister->loadAll($criteria, $orderBy, $limit, $offset));
 	}
@@ -180,9 +188,11 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 	/**
 	 * {@inheritDoc}
 	 */
-	public function findOneBy(array $criteria, array $orderBy = null)
+	public function findOneBy(array $criteria, ?array $orderBy = [])
 	{
-		$orderBy = array_merge((array) $orderBy, static::$order);
+		if (!is_null($orderBy)) {
+			$orderBy = array_merge((array) $orderBy, static::$order);
+		}
 
 		return parent::findOneBy($criteria, $orderBy);
 	}
@@ -241,17 +251,14 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 				if (preg_match_all(self::REGEX_CONDITION, $condition, $matches)) {
 					$field    = $matches[1][0];
 					$operator = $matches[2][0];
-
 				} else {
 					$field    = $condition;
 					$operator = '=';
 				}
-
 			} elseif (!is_array($value)) {
 				$field    = $terms[$condition];
 				$value    = NULL;
 				$operator = '!';
-
 			} else {
 				$ors->add($this->expandBuildTerms($builder, $value, $pcount));
 				continue;
@@ -288,7 +295,6 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 					$value = '%' . $value . '%';
 
 					$builder->setParameter($pcount, $value);
-
 				} elseif ($operator == '<>' || $operator == '!') {
 					$null_safe  = $builder->expr()->orx();
 
@@ -297,11 +303,9 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 					$builder->setParameter($pcount, $value);
 
 					$comparison = $null_safe;
-
 				} else {
 					$builder->setParameter($pcount, $value);
 				}
-
 			} else {
 				$comparison = $this->makeComparison($builder, $field, $operator, $value);
 			}
@@ -358,7 +362,6 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 					$method = 'isNotNull';
 					break;
 			}
-
 		} elseif (is_array($value)) {
 			switch ($method) {
 				case 'eq':
@@ -381,15 +384,14 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 	}
 
 	/**
- 	 *
+	 *
 	 */
 	public function query($builder)
 	{
 		$query = $this->_em
-			-> createQueryBuilder()
-			-> select('data')
-			-> from($this->model, 'data')
-		;
+			->createQueryBuilder()
+			->select('data')
+			->from($this->model, 'data');
 		if (is_callable($builder)) {
 			$builder($query);
 		} elseif (is_string($builder) || is_array($builder)) {
