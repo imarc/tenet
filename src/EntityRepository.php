@@ -49,7 +49,7 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 
 		$builder = $this->_em
 			->createQueryBuilder()
-			->select(sprintf('DISTINCT %s', static::ALIAS_NAME))
+			->select(sprintf('DISTINCT data', static::ALIAS_NAME))
 			->from($this->model, static::ALIAS_NAME);
 
 		if ($limit) {
@@ -94,7 +94,9 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 
 				if (!in_array($rel_alias, $join_aliases)) {
 					$builder->leftJoin(self::ALIAS_NAME . '.' . $rel_alias, $rel_alias, 'ON');
+					$builder->addSelect($rel_alias);
 				}
+
 			}
 
 			$builder->addOrderBy($field, $direction);
@@ -111,10 +113,9 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 	{
 		$builder = $this->_em
 			->createQueryBuilder()
-			->select(sprintf('DISTINCT %s', static::ALIAS_NAME))
 			->from($this->model, static::ALIAS_NAME);
 
-		$builder->select('count(data.' . $field . ')');
+		$builder->select('count(DISTINCT(data.' . $field . '))');
 
 		if ($terms) {
 			$builder->where($this->expandBuildTerms($builder, $terms));
