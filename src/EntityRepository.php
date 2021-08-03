@@ -47,7 +47,10 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 			$order = array();
 		}
 
-		$builder = $this->createQueryBuilder(static::ALIAS_NAME);
+		$builder = $this->_em
+			->createQueryBuilder()
+			->select(sprintf('DISTINCT %s', static::ALIAS_NAME))
+			->from($this->model, static::ALIAS_NAME);
 
 		if ($limit) {
 			if ($limit < 0) {
@@ -106,7 +109,10 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 	 */
 	public function count(array $terms = NULL, $field = '*')
 	{
-		$builder = $this->createQueryBuilder(static::ALIAS_NAME);
+		$builder = $this->_em
+			->createQueryBuilder()
+			->select(sprintf('DISTINCT %s', static::ALIAS_NAME))
+			->from($this->model, static::ALIAS_NAME);
 
 		$builder->select('count(data.' . $field . ')');
 
@@ -390,8 +396,8 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 	{
 		$query = $this->_em
 			->createQueryBuilder()
-			->select('data')
-			->from($this->model, 'data');
+			->select(static::ALIAS_NAME)
+			->from($this->model, static::ALIAS_NAME);
 		if (is_callable($builder)) {
 			$builder($query);
 		} elseif (is_string($builder) || is_array($builder)) {
