@@ -290,6 +290,7 @@ class EntityRepository extends Doctrine\ORM\EntityRepository
 
 				if (!in_array($rel_alias, $join_aliases)) {
 					$builder->leftJoin(self::ALIAS_NAME . '.' . $rel_alias, $rel_alias, 'ON');
+					$builder->addSelect($rel_alias);
 				}
 			}
 
